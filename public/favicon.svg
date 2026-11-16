@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs>
+    <mask id="chevron-cut" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width="48" height="48">
+      <rect width="48" height="48" fill="white"/>
+      <path d="M2 24H46" stroke="black" stroke-width="1.4"/>
+    </mask>
+  </defs>
+  <path fill="#a9c94d" mask="url(#chevron-cut)" d="M3 8h12l16 16-16 16H3l16-16L3 8Zm14 0h12l16 16-16 16H17l16-16L17 8Z"/>
+</svg>
