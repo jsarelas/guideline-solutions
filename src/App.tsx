@@ -5,7 +5,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { applyPageMetadata } from "./seo";
+import { applyPageMetadata, normalizePath } from "./seo";
 
 type IconName =
   | "spark"
@@ -955,14 +955,18 @@ function LogoFontPreviewPage() {
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
-  useEffect(() => applyPageMetadata(window.location.pathname), []);
-  if (
-    window.location.pathname === "/founder" ||
-    window.location.pathname === "/ceo" ||
-    window.location.pathname === "/about"
-  )
+  const path = normalizePath(window.location.pathname);
+  useEffect(() => {
+    // Show the canonical path in the address bar, e.g. /Contact/ -> /contact.
+    if (path !== window.location.pathname) {
+      const { search, hash } = window.location;
+      window.history.replaceState(null, "", path + search + hash);
+    }
+    applyPageMetadata(path);
+  }, [path]);
+  if (path === "/founder" || path === "/ceo" || path === "/about")
     return <CeoPage />;
-  if (window.location.pathname === "/contact") return <ContactPage />;
+  if (path === "/contact") return <ContactPage />;
   return (
     <>
       <header className="topbar" id="home">

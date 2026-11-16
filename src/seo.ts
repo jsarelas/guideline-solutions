@@ -33,7 +33,7 @@ const pages: Record<
     type: "contact",
   },
   "/ceo": {
-    title: "Guideline Solutions |Jason Sarelas, Founder & CEO",
+    title: "Guideline Solutions | Jason Sarelas, Founder & CEO",
     description: "Meet Jason Sarelas, Founder and CEO of Guideline Solutions.",
     path: "/founder",
     type: "founder",
@@ -61,8 +61,13 @@ function setMeta(
   element.content = content;
 }
 
+/** Lowercases the path and drops trailing slashes: "/Contact/" -> "/contact". */
+export function normalizePath(pathname: string): string {
+  return pathname.toLowerCase().replace(/\/+$/, "") || "/";
+}
+
 export function applyPageMetadata(pathname: string) {
-  const page = pages[pathname] ?? pages["/"];
+  const page = pages[normalizePath(pathname)] ?? pages["/"];
   const canonicalUrl = `${siteUrl}${page.path}`;
   document.title = page.title;
   setMeta('meta[name="description"]', "name", "description", page.description);
