@@ -14,7 +14,10 @@ type IconName =
   | "cloud"
   | "compass"
   | "shield"
-  | "arrow";
+  | "arrow"
+  | "mail"
+  | "phone"
+  | "locate";
 
 function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
@@ -58,6 +61,23 @@ function Icon({ name }: { name: IconName }) {
     arrow: (
       <>
         <path d="M5 12h14m-6-6 6 6-6 6" />
+      </>
+    ),
+    // Contact icons. SVGs rather than ✉ / ☎ characters, which iOS shows as emoji.
+    mail: (
+      <>
+        <rect x="3" y="5.5" width="18" height="13" rx="1.5" />
+        <path d="m3.5 6.5 8.5 6.5 8.5-6.5" />
+      </>
+    ),
+    phone: (
+      <path d="M21 16.4v2.9a1.9 1.9 0 0 1-2.1 1.9 18.8 18.8 0 0 1-8.2-2.9 18.5 18.5 0 0 1-5.7-5.7A18.8 18.8 0 0 1 2.1 4.4 1.9 1.9 0 0 1 4 2.3h2.9a1.9 1.9 0 0 1 1.9 1.6c.1.9.4 1.8.7 2.7a1.9 1.9 0 0 1-.4 2L7.9 9.8a15.2 15.2 0 0 0 5.7 5.7l1.2-1.2a1.9 1.9 0 0 1 2-.4c.9.3 1.8.6 2.7.7a1.9 1.9 0 0 1 1.5 1.8Z" />
+    ),
+    locate: (
+      <>
+        <circle cx="12" cy="12" r="5.5" />
+        <circle cx="12" cy="12" r="1" />
+        <path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4" />
       </>
     ),
   };
@@ -386,7 +406,9 @@ function ContactPage() {
             </p>
             <div className="contact-details">
               <div>
-                <span className="contact-detail-icon">✉</span>
+                <span className="contact-detail-icon">
+                  <Icon name="mail" />
+                </span>
                 <span>
                   <b>Email</b>
                   <a href="mailto:info@guidelinesolutions.com" target="_blank" rel="noopener noreferrer">
@@ -395,14 +417,18 @@ function ContactPage() {
                 </span>
               </div>
               <div>
-                <span className="contact-detail-icon">↗</span>
+                <span className="contact-detail-icon">
+                  <Icon name="phone" />
+                </span>
                 <span>
                   <b>Call</b>
                   <a href="tel:+17733922336">(773) 392-2336</a>
                 </span>
               </div>
               <div>
-                <span className="contact-detail-icon">⌖</span>
+                <span className="contact-detail-icon">
+                  <Icon name="locate" />
+                </span>
                 <span>
                   <b>Based in</b>
                   <span>Austin, Texas</span>
