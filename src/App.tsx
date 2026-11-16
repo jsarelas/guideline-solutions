@@ -321,7 +321,7 @@ function CeoPage() {
             </h2>
             <div className="client-marks" aria-label="Selected past clients">
               <span className="client-walmart">
-                <b>✳</b> Walmart
+                <img src="/images/walmart-logo.png" alt="Walmart" />
               </span>
               <JllClientLogo />
               <span className="client-crate">Crate&amp;Barrel</span>
