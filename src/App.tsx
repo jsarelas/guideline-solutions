@@ -978,10 +978,11 @@ function LogoFontPreviewPage() {
   );
 }
 
-export default function App() {
+/** `path` is passed when prerendering at build time; in the browser it comes from the URL. */
+export default function App({ path: pathProp }: { path?: string } = {}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
-  const path = normalizePath(window.location.pathname);
+  const path = normalizePath(pathProp ?? window.location.pathname);
   useEffect(() => {
     // Show the canonical path in the address bar, e.g. /Contact/ -> /contact.
     if (path !== window.location.pathname) {

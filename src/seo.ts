@@ -46,84 +46,32 @@ const pages: Record<
   },
 };
 
-function setMeta(
-  selector: string,
-  attribute: "name" | "property",
-  key: string,
-  content: string,
-) {
-  let element = document.head.querySelector<HTMLMetaElement>(selector);
-  if (!element) {
-    element = document.createElement("meta");
-    element.setAttribute(attribute, key);
-    document.head.append(element);
-  }
-  element.content = content;
-}
-
-/** Lowercases the path and drops trailing slashes: "/Contact/" -> "/contact". */
+/**
+ * Lowercases the path and drops trailing slashes and the prerendered file
+ * name: "/Contact/" and "/contact.html" -> "/contact", "/index.html" -> "/".
+ */
 export function normalizePath(pathname: string): string {
-  return pathname.toLowerCase().replace(/\/+$/, "") || "/";
+  return (
+    pathname
+      .toLowerCase()
+      .replace(/\/+$/, "")
+      .replace(/\.html$/, "")
+      .replace(/\/index$/, "") || "/"
+  );
 }
 
-export function applyPageMetadata(pathname: string) {
+type PageMeta = {
+  title: string;
+  description: string;
+  robots: string;
+  canonicalUrl: string;
+  structuredData: object;
+};
+
+/** Everything that goes in <head> for a path; used in the browser and at build time. */
+export function getPageMeta(pathname: string): PageMeta {
   const page = pages[normalizePath(pathname)] ?? pages["/"];
   const canonicalUrl = `${siteUrl}${page.path}`;
-  document.title = page.title;
-  setMeta('meta[name="description"]', "name", "description", page.description);
-  setMeta(
-    'meta[name="robots"]',
-    "name",
-    "robots",
-    page.index === false ? "noindex,follow" : "index,follow",
-  );
-  setMeta('meta[property="og:title"]', "property", "og:title", page.title);
-  setMeta(
-    'meta[property="og:description"]',
-    "property",
-    "og:description",
-    page.description,
-  );
-  setMeta('meta[property="og:url"]', "property", "og:url", canonicalUrl);
-  setMeta('meta[property="og:image"]', "property", "og:image", defaultImage);
-  setMeta(
-    'meta[property="og:image:alt"]',
-    "property",
-    "og:image:alt",
-    "Guideline Solutions AI consulting",
-  );
-  setMeta('meta[property="og:type"]', "property", "og:type", "website");
-  setMeta(
-    'meta[property="og:site_name"]',
-    "property",
-    "og:site_name",
-    "Guideline Solutions",
-  );
-  setMeta(
-    'meta[name="twitter:card"]',
-    "name",
-    "twitter:card",
-    "summary_large_image",
-  );
-  setMeta('meta[name="twitter:title"]', "name", "twitter:title", page.title);
-  setMeta(
-    'meta[name="twitter:description"]',
-    "name",
-    "twitter:description",
-    page.description,
-  );
-  setMeta('meta[name="twitter:image"]', "name", "twitter:image", defaultImage);
-
-  let canonical = document.head.querySelector<HTMLLinkElement>(
-    'link[rel="canonical"]',
-  );
-  if (!canonical) {
-    canonical = document.createElement("link");
-    canonical.rel = "canonical";
-    document.head.append(canonical);
-  }
-  canonical.href = canonicalUrl;
-
   const structuredData =
     page.type === "founder"
       ? {
@@ -170,6 +118,85 @@ export function applyPageMetadata(pathname: string) {
               "responsible AI",
             ],
           };
+  return {
+    title: page.title,
+    description: page.description,
+    robots: page.index === false ? "noindex,follow" : "index,follow",
+    canonicalUrl,
+    structuredData,
+  };
+}
+
+const imageAlt = "Guideline Solutions AI consulting";
+
+/** Meta tags as [attribute, key, content], in the order they appear in <head>. */
+function metaTags(meta: PageMeta): ["name" | "property", string, string][] {
+  return [
+    ["name", "description", meta.description],
+    ["name", "robots", meta.robots],
+    ["property", "og:type", "website"],
+    ["property", "og:site_name", "Guideline Solutions"],
+    ["property", "og:title", meta.title],
+    ["property", "og:description", meta.description],
+    ["property", "og:url", meta.canonicalUrl],
+    ["property", "og:image", defaultImage],
+    ["property", "og:image:alt", imageAlt],
+    ["name", "twitter:card", "summary_large_image"],
+    ["name", "twitter:title", meta.title],
+    ["name", "twitter:description", meta.description],
+    ["name", "twitter:image", defaultImage],
+  ];
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/** The <head> SEO tags as HTML, for prerendering pages at build time. */
+export function renderHeadTags(pathname: string): string {
+  const meta = getPageMeta(pathname);
+  const json = JSON.stringify(meta.structuredData).replace(/</g, "\\u003c");
+  return [
+    `<title>${escapeHtml(meta.title)}</title>`,
+    `<link rel="canonical" href="${escapeHtml(meta.canonicalUrl)}" />`,
+    ...metaTags(meta).map(
+      ([attribute, key, content]) =>
+        `<meta ${attribute}="${key}" content="${escapeHtml(content)}" />`,
+    ),
+    `<script id="page-structured-data" type="application/ld+json">${json}</script>`,
+  ].join("\n    ");
+}
+
+/** Updates <head> in the browser to match the current path. */
+export function applyPageMetadata(pathname: string) {
+  const meta = getPageMeta(pathname);
+  document.title = meta.title;
+  for (const [attribute, key, content] of metaTags(meta)) {
+    let element = document.head.querySelector<HTMLMetaElement>(
+      `meta[${attribute}="${key}"]`,
+    );
+    if (!element) {
+      element = document.createElement("meta");
+      element.setAttribute(attribute, key);
+      document.head.append(element);
+    }
+    element.content = content;
+  }
+
+  let canonical = document.head.querySelector<HTMLLinkElement>(
+    'link[rel="canonical"]',
+  );
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.append(canonical);
+  }
+  canonical.href = meta.canonicalUrl;
+
   let jsonLd = document.head.querySelector<HTMLScriptElement>(
     "#page-structured-data",
   );
@@ -179,5 +206,5 @@ export function applyPageMetadata(pathname: string) {
     jsonLd.type = "application/ld+json";
     document.head.append(jsonLd);
   }
-  jsonLd.textContent = JSON.stringify(structuredData);
+  jsonLd.textContent = JSON.stringify(meta.structuredData);
 }
