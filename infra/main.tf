@@ -63,9 +63,8 @@ resource "azurerm_static_web_app" "site" {
 # ---------------------------------------------------------------------------
 # 2. Custom domain
 #
-# TXT validation lets the domain be verified and its certificate issued
-# while www still points at the old App Service; the CNAME is switched only
-# once this shows "Ready" in the portal. See README.md.
+# Validated by CNAME, so point the www CNAME at the static web app's
+# hostname first (a TXT record can't sit beside a CNAME on www). See README.md.
 # ---------------------------------------------------------------------------
 
 resource "azurerm_static_web_app_custom_domain" "www" {
@@ -73,7 +72,7 @@ resource "azurerm_static_web_app_custom_domain" "www" {
 
   static_web_app_id = azurerm_static_web_app.site.id
   domain_name       = var.custom_domain
-  validation_type   = "dns-txt-token"
+  validation_type   = "cname-delegation"
 }
 
 # ---------------------------------------------------------------------------
@@ -116,18 +115,8 @@ output "static_web_app_url" {
   value       = "https://${azurerm_static_web_app.site.default_host_name}"
 }
 
-output "dns_txt_record" {
-  description = "Add at GoDaddy to validate the custom domain (Type TXT)."
-  value = var.custom_domain == "" ? null : {
-    type  = "TXT"
-    name  = "_dnsauth.${split(".", var.custom_domain)[0]}"
-    # Published in public DNS anyway, so it is safe to print.
-    value = nonsensitive(azurerm_static_web_app_custom_domain.www[0].validation_token)
-  }
-}
-
 output "dns_cname_record" {
-  description = "Change at GoDaddy once the custom domain shows Ready (Type CNAME)."
+  description = "Set at GoDaddy before binding the custom domain (Type CNAME)."
   value = var.custom_domain == "" ? null : {
     type  = "CNAME"
     name  = split(".", var.custom_domain)[0]

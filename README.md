@@ -42,9 +42,12 @@ trailing-slash redirect, Azure does).
 
 ### First-time domain setup (GoDaddy DNS)
 
-1. After the first `terraform apply`, test the site at the
-   `static_web_app_url` output.
-2. Add the `dns_txt_record` output at GoDaddy (Type TXT, Name `_dnsauth.www`).
-3. Wait until the domain shows **Ready** in the portal under the static
-   web app's **Custom domains**. The free certificate is issued then.
-4. Change the `www` CNAME at GoDaddy to the `dns_cname_record` value.
+The custom domain is validated by CNAME, so `www` has to point at the static
+web app before Azure can bind it and issue the free certificate.
+
+1. Run `terraform apply` with `-var custom_domain=""`, then test the site at
+   the `static_web_app_url` output.
+2. At GoDaddy, change the `www` CNAME to the `dns_cname_record` value.
+3. When the new CNAME resolves, run `terraform apply` (with the default
+   `custom_domain`). Azure validates the CNAME and issues the certificate,
+   usually within minutes; until then https://www shows a certificate warning.
