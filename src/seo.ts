@@ -7,7 +7,7 @@ const pages: Record<
     title: string;
     description: string;
     path: string;
-    type?: "home" | "founder" | "contact";
+    type?: "home" | "founder" | "contact" | "notFound";
     index?: boolean;
   }
 > = {
@@ -46,6 +46,20 @@ const pages: Record<
   },
 };
 
+/** Shown for any path not listed above; prerendered to dist/404.html. */
+const notFoundPage = {
+  title: "Guideline Solutions | Page Not Found",
+  description: "The page you were looking for could not be found.",
+  path: "/404",
+  type: "notFound" as const,
+  index: false,
+};
+
+/** Whether a (normalized) path is a real page rather than a 404. */
+export function isKnownPath(path: string): boolean {
+  return Object.prototype.hasOwnProperty.call(pages, path);
+}
+
 /**
  * Lowercases the path and drops trailing slashes and the prerendered file
  * name: "/Contact/" and "/contact.html" -> "/contact", "/index.html" -> "/".
@@ -70,10 +84,17 @@ type PageMeta = {
 
 /** Everything that goes in <head> for a path; used in the browser and at build time. */
 export function getPageMeta(pathname: string): PageMeta {
-  const page = pages[normalizePath(pathname)] ?? pages["/"];
+  const path = normalizePath(pathname);
+  const page = isKnownPath(path) ? pages[path] : notFoundPage;
   const canonicalUrl = `${siteUrl}${page.path}`;
   const structuredData =
-    page.type === "founder"
+    page.type === "notFound"
+      ? {
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: page.title,
+        }
+      : page.type === "founder"
       ? {
           "@context": "https://schema.org",
           "@type": "Person",

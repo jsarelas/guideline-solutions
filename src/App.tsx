@@ -5,7 +5,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { applyPageMetadata, normalizePath } from "./seo";
+import { applyPageMetadata, isKnownPath, normalizePath } from "./seo";
 
 type IconName =
   | "spark"
@@ -346,6 +346,42 @@ function CeoPage() {
               <JllClientLogo />
               <span className="client-crate">Crate&amp;Barrel</span>
               <span className="client-spencer">SpencerStuart</span>
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </>
+  );
+}
+
+function NotFoundPage() {
+  return (
+    <>
+      <SiteHeader />
+      <main className="subpage not-found-page">
+        <section className="subpage-hero not-found-hero">
+          <div className="subpage-hero-shade" />
+          <div className="subpage-hero-copy">
+            <div className="eyebrow light">
+              <span className="eyebrow-line" />
+              404 Error
+            </div>
+            <h1>
+              Page
+              <br />
+              <em>not found.</em>
+            </h1>
+            <p>
+              The page you were looking for has moved or no longer exists.
+            </p>
+            <div className="hero-actions">
+              <a className="button button-lime" href="/">
+                Back to home <Icon name="arrow" />
+              </a>
+              <a className="text-link light-link" href="/contact">
+                Contact us
+              </a>
             </div>
           </div>
         </section>
@@ -994,6 +1030,7 @@ export default function App({ path: pathProp }: { path?: string } = {}) {
   if (path === "/founder" || path === "/ceo" || path === "/about")
     return <CeoPage />;
   if (path === "/contact") return <ContactPage />;
+  if (!isKnownPath(path)) return <NotFoundPage />;
   return (
     <>
       <header className="topbar" id="home">

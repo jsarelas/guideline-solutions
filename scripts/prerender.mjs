@@ -11,6 +11,9 @@ const pages = {
   "/": "index.html",
   "/founder": "founder/index.html",
   "/contact": "contact/index.html",
+  // Any path not listed in src/seo.ts renders the not-found page; Azure
+  // serves this file for every 404 (responseOverrides in staticwebapp.config.json).
+  "/404": "404.html",
 };
 
 const { render } = await import("../dist-ssr/entry-server.js");

@@ -69,3 +69,4 @@
 @media(max-width:640px){.contact-details{display:flex;flex-direction:column;gap:17px}}
 .client-walmart img{display:block;width:auto;height:30px}@media(max-width:640px){.client-walmart img{height:26px}}
 .contact-detail-icon svg{width:19px;height:19px;display:block}
+.not-found-hero{background-image:url('/images/banner.jpg');background-position:center 55%;min-height:65vh}
