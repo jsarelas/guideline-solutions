@@ -1,0 +1,15 @@
+{
+  "trailingSlash": "never",
+  "routes": [
+    { "route": "/founder", "rewrite": "/founder/index.html" },
+    { "route": "/contact", "rewrite": "/contact/index.html" },
+    { "route": "/founder.html", "redirect": "/founder", "statusCode": 301 },
+    { "route": "/contact.html", "redirect": "/contact", "statusCode": 301 },
+    { "route": "/ceo", "redirect": "/founder", "statusCode": 301 },
+    { "route": "/about", "redirect": "/founder", "statusCode": 301 },
+    {
+      "route": "/service-worker.js",
+      "headers": { "Cache-Control": "no-cache" }
+    }
+  ]
+}

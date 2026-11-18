@@ -1,12 +1,16 @@
 // Writes a fully rendered HTML file per page into dist/, so crawlers get each
 // page's content, title and canonical URL without running JavaScript.
-// public/web.config maps the URLs to these files; keep the two in sync.
-import { readFile, rm, writeFile } from "node:fs/promises";
+// Each page goes in its own folder (founder/index.html) so Azure Static Web
+// Apps serves it at /founder with no .html in the address. Old /founder.html
+// style links are redirected in public/staticwebapp.config.json; keep the
+// page list there and in src/seo.ts in sync with this one.
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 
 const pages = {
   "/": "index.html",
-  "/founder": "founder.html",
-  "/contact": "contact.html",
+  "/founder": "founder/index.html",
+  "/contact": "contact/index.html",
 };
 
 const { render } = await import("../dist-ssr/entry-server.js");
@@ -20,6 +24,7 @@ for (const [path, file] of Object.entries(pages)) {
   const out = template
     .replace("<!--app-head-->", () => head)
     .replace("<!--app-html-->", () => html);
+  await mkdir(dirname(`dist/${file}`), { recursive: true });
   await writeFile(`dist/${file}`, out);
   console.log(`prerendered ${path} -> dist/${file}`);
 }

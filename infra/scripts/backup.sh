@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-# Backs up the current site/wwwroot of the web app to a local zip.
+# Backs up the current site/wwwroot of the old Guideline-react App Service to
+# a local zip. No longer run by Terraform; run it by hand before the old app
+# is deleted:
+#
+#   SUBSCRIPTION_ID=36b72e8a-49f3-4d06-b702-dc3b3ac8e15f RESOURCE_GROUP=Guideline-react \
+#   WEB_APP_NAME=Guideline-react BACKUP_DIR=infra/backups bash infra/scripts/backup.sh
 #
 # Files are downloaded one at a time through the Kudu VFS API (with retries)
 # rather than as one server-generated zip: on slow links to Azure the single

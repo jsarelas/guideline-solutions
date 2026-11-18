@@ -1,31 +1,31 @@
 variable "subscription_id" {
-  description = "Azure subscription that contains the web app."
+  description = "Azure subscription for the static web app."
   type        = string
   default     = "36b72e8a-49f3-4d06-b702-dc3b3ac8e15f"
 }
 
-variable "web_app_name" {
-  description = "Existing App Service web app to deploy to."
+variable "resource_group_name" {
+  description = "Existing resource group to create the static web app in."
   type        = string
   default     = "Guideline-react"
 }
 
-variable "service_plan_name" {
-  description = "Existing App Service plan hosting the web app."
+variable "static_web_app_name" {
+  description = "Name of the static web app."
   type        = string
-  default     = "ServicePlanSouthCentralFree"
+  default     = "guideline-solutions-swa"
 }
 
-variable "location" {
-  description = "Expected region of the App Service plan (checked, not changed)."
+variable "static_web_app_location" {
+  description = "Region for the static web app's management resource (content is served globally). The Free tier is only offered in a few regions, which don't include South Central US."
   type        = string
-  default     = "South Central US"
+  default     = "centralus"
 }
 
-variable "expected_sku" {
-  description = "Expected plan SKU (checked, not changed)."
+variable "custom_domain" {
+  description = "Custom domain to bind. Set to \"\" to skip."
   type        = string
-  default     = "B1"
+  default     = "www.guidelinesolutions.com"
 }
 
 variable "dist_dir" {
@@ -34,14 +34,8 @@ variable "dist_dir" {
   default     = "../dist"
 }
 
-variable "clean_deploy" {
-  description = "Delete everything in site/wwwroot before deploying (a backup is always taken first)."
-  type        = bool
-  default     = true
-}
-
-variable "linux_startup_command" {
-  description = "Startup command applied only if the app is a Linux Node app, so it serves the static files. Set to \"\" to leave the app's startup command alone."
+variable "swa_cli_version" {
+  description = "Version of @azure/static-web-apps-cli used to upload the site."
   type        = string
-  default     = "pm2 serve /home/site/wwwroot --no-daemon --spa"
+  default     = "2.1.0"
 }
