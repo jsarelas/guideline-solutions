@@ -3,6 +3,8 @@
   "routes": [
     { "route": "/founder", "rewrite": "/founder/index.html" },
     { "route": "/contact", "rewrite": "/contact/index.html" },
+    { "route": "/index.html", "redirect": "/", "statusCode": 301 },
+    { "route": "/index", "redirect": "/", "statusCode": 301 },
     { "route": "/founder.html", "redirect": "/founder", "statusCode": 301 },
     { "route": "/contact.html", "redirect": "/contact", "statusCode": 301 },
     { "route": "/ceo", "redirect": "/founder", "statusCode": 301 },
