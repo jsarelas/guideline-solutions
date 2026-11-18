@@ -19,18 +19,35 @@ The contact form opens a prefilled email draft in the visitor’s email app; it 
 
 ## Deploy (Azure Static Web Apps)
 
-The site is hosted on Azure Static Web Apps (Free tier). `infra/` creates the
-static web app and the `www.guidelinesolutions.com` domain binding, and
-uploads `dist/` whenever it changes.
+The site is hosted on Azure Static Web Apps (Free tier).
 
-Prerequisites: Terraform 1.5+, Node, and `az login` to the subscription.
+**Site content** is deployed by GitHub Actions
+([.github/workflows/deploy.yml](.github/workflows/deploy.yml)): every push to
+`main` builds and deploys to production, and every pull request gets a preview
+URL that is deleted when the PR closes. It uses the repo secret
+`AZURE_STATIC_WEB_APPS_API_TOKEN` (Settings → Secrets and variables →
+Actions). To set or rotate it:
 
 ```sh
-npm run build
+cd infra
+terraform output -raw deployment_token | pbcopy
+```
+
+**Infrastructure** (the static web app and the `www.guidelinesolutions.com`
+domain binding) is managed by Terraform in `infra/`. It rarely changes, so it
+is run by hand. State is stored in the `guidelinetfstate` storage account
+(container `tfstate`), so any machine logged in with `az login` sees the same
+state. Prerequisites: Terraform 1.5+ and `az login` to the subscription.
+
+```sh
 cd infra
 terraform init
+terraform plan
 terraform apply
 ```
+
+The state storage account was created once by
+`infra/scripts/bootstrap-state.sh`; Terraform can't create its own backend.
 
 URLs have no `.html`. Each page is prerendered to its own folder
 (`dist/founder/index.html`) and served at `/founder`. Old `/founder.html`,

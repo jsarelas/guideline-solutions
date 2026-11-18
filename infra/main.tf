@@ -3,8 +3,13 @@
 #
 # Creates:
 #   - the static web app in the existing resource group
-#   - the www custom domain binding (TXT-validated, free managed certificate)
-# and uploads ../dist with the Static Web Apps CLI whenever it changes.
+#   - the www custom domain binding (CNAME-validated, free managed certificate)
+#
+# The site itself is deployed by GitHub Actions on every push to main
+# (.github/workflows/deploy.yml), not by Terraform.
+#
+# State is stored in Azure Storage (guidelinetfstate/tfstate), created once by
+# scripts/bootstrap-state.sh.
 #
 # The old Guideline-react App Service is not referenced here at all, so
 # Terraform never changes or deletes it.
@@ -13,14 +18,18 @@
 terraform {
   required_version = ">= 1.5.0"
 
+  backend "azurerm" {
+    subscription_id      = "36b72e8a-49f3-4d06-b702-dc3b3ac8e15f"
+    resource_group_name  = "Guideline-react"
+    storage_account_name = "guidelinetfstate"
+    container_name       = "tfstate"
+    key                  = "guideline-solutions.tfstate"
+  }
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
-    }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.2"
     }
   }
 }
@@ -37,15 +46,6 @@ provider "azurerm" {
 
 data "azurerm_resource_group" "site" {
   name = var.resource_group_name
-}
-
-locals {
-  dist_dir = abspath("${path.module}/${var.dist_dir}")
-
-  # Changes whenever any file in dist/ changes -> triggers a redeploy.
-  dist_hash = sha1(join("", [
-    for f in sort(fileset(local.dist_dir, "**")) : "${f}:${filesha1("${local.dist_dir}/${f}")}"
-  ]))
 }
 
 # ---------------------------------------------------------------------------
@@ -76,37 +76,6 @@ resource "azurerm_static_web_app_custom_domain" "www" {
 }
 
 # ---------------------------------------------------------------------------
-# 3. Upload ../dist
-# ---------------------------------------------------------------------------
-
-resource "null_resource" "deploy" {
-  triggers = {
-    dist_hash      = local.dist_hash
-    static_web_app = azurerm_static_web_app.site.id
-  }
-
-  lifecycle {
-    precondition {
-      condition     = fileexists("${local.dist_dir}/index.html")
-      error_message = "No production build found at ${local.dist_dir}. Run `npm run build` first."
-    }
-    precondition {
-      condition     = fileexists("${local.dist_dir}/staticwebapp.config.json")
-      error_message = "dist/staticwebapp.config.json is missing. It is copied from public/ by `npm run build`."
-    }
-  }
-
-  provisioner "local-exec" {
-    command = "npx --yes @azure/static-web-apps-cli@${var.swa_cli_version} deploy \"$DIST_DIR\" --env production --deployment-token \"$SWA_DEPLOYMENT_TOKEN\""
-    environment = {
-      DIST_DIR             = local.dist_dir
-      SWA_DEPLOYMENT_TOKEN = azurerm_static_web_app.site.api_key
-      SWA_CLI_TELEMETRY    = "false"
-    }
-  }
-}
-
-# ---------------------------------------------------------------------------
 # Outputs
 # ---------------------------------------------------------------------------
 
@@ -122,4 +91,10 @@ output "dns_cname_record" {
     name  = split(".", var.custom_domain)[0]
     value = azurerm_static_web_app.site.default_host_name
   }
+}
+
+output "deployment_token" {
+  description = "Deployment token for GitHub Actions (repo secret AZURE_STATIC_WEB_APPS_API_TOKEN)."
+  value       = azurerm_static_web_app.site.api_key
+  sensitive   = true
 }

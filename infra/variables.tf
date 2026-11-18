@@ -27,15 +27,3 @@ variable "custom_domain" {
   type        = string
   default     = "www.guidelinesolutions.com"
 }
-
-variable "dist_dir" {
-  description = "Path to the Vite build output, relative to this folder."
-  type        = string
-  default     = "../dist"
-}
-
-variable "swa_cli_version" {
-  description = "Version of @azure/static-web-apps-cli used to upload the site."
-  type        = string
-  default     = "2.1.0"
-}
