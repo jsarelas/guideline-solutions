@@ -121,7 +121,8 @@ output "dns_txt_record" {
   value = var.custom_domain == "" ? null : {
     type  = "TXT"
     name  = "_dnsauth.${split(".", var.custom_domain)[0]}"
-    value = azurerm_static_web_app_custom_domain.www[0].validation_token
+    # Published in public DNS anyway, so it is safe to print.
+    value = nonsensitive(azurerm_static_web_app_custom_domain.www[0].validation_token)
   }
 }
 
